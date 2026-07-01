@@ -217,8 +217,8 @@ function PostCard({
           </button>
         )}
       </div>
-      {post.title && <h3 className="mt-3 font-semibold leading-snug">{post.title}</h3>}
-      <p className="mt-1.5 whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground/90">
+      {post.title && <h3 className="mt-3 font-display text-lg font-semibold leading-snug tracking-[-0.01em]">{post.title}</h3>}
+      <p className="mt-1.5 whitespace-pre-wrap break-words text-[0.95rem] leading-relaxed text-foreground/90">
         {post.content}
       </p>
     </motion.article>

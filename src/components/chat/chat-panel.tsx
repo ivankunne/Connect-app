@@ -263,11 +263,11 @@ function MessageItem({
                 {flagFor(author.home_country)}
               </span>
             )}
-            <span className="text-[0.7rem] text-muted-foreground">{messageTime(message.created_at)}</span>
+            <span className="text-xs text-muted-foreground">{messageTime(message.created_at)}</span>
           </div>
         )}
         <div className="flex items-start gap-2">
-          <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground/90">
+          <p className="whitespace-pre-wrap break-words text-[0.95rem] leading-relaxed text-foreground/90">
             {message.content}
           </p>
           {own && (
