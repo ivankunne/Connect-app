@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search } from "lucide-react";
+import { Home, MessageCircle, Search } from "lucide-react";
 import type { CommunityWithCount } from "@/lib/types";
 import { CommunityAvatar } from "@/components/community-avatar";
 import { HomeLinkMark } from "@/components/brand";
@@ -39,6 +39,9 @@ export function SidebarNav({
       <nav className="px-2.5">
         <NavLink href="/app/feed" icon={<Home className="size-4" />} active={pathname === "/app/feed"} onNavigate={onNavigate}>
           Feed
+        </NavLink>
+        <NavLink href="/app/messages" icon={<MessageCircle className="size-4" />} active={pathname.startsWith("/app/messages") || pathname.startsWith("/app/dm")} onNavigate={onNavigate}>
+          Meldinger
         </NavLink>
         <NavLink href="/app/search" icon={<Search className="size-4" />} active={pathname === "/app/search"} onNavigate={onNavigate}>
           Søk

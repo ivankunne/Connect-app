@@ -26,17 +26,31 @@ export async function assignCommunities(userId: string, location: ProfileLocatio
 
   if (upsertErr) throw upsertErr;
 
-  // 2. Upsert memberships for the user across all of them.
-  const memberships = (communities ?? []).map((c) => ({
-    user_id: userId,
-    community_id: c.id,
-  }));
+  const ids = (communities ?? []).map((c) => c.id);
 
+  // 2. Upsert memberships as auto-assigned (ignoreDuplicates keeps any existing
+  //    manual membership as manual).
   const { error: memberErr } = await admin
     .from("memberships")
-    .upsert(memberships, { onConflict: "user_id,community_id", ignoreDuplicates: true });
+    .upsert(
+      ids.map((community_id) => ({ user_id: userId, community_id, source: "auto" as const })),
+      { onConflict: "user_id,community_id", ignoreDuplicates: true },
+    );
 
   if (memberErr) throw memberErr;
+
+  // 3. Reconcile: remove auto memberships that no longer match the profile
+  //    (e.g. the old country/city after the user moved). Manually-joined
+  //    communities (source = 'manual') are never pruned.
+  if (ids.length > 0) {
+    const { error: pruneErr } = await admin
+      .from("memberships")
+      .delete()
+      .eq("user_id", userId)
+      .eq("source", "auto")
+      .not("community_id", "in", `(${ids.join(",")})`);
+    if (pruneErr) throw pruneErr;
+  }
 
   return communities ?? [];
 }

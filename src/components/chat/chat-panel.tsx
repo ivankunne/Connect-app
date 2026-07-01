@@ -9,6 +9,7 @@ import type { Message, Author } from "@/lib/types";
 import type { MessageCategory } from "@/lib/database.types";
 import { CHANNELS, MESSAGE_PAGE_SIZE, channelLabel } from "@/lib/constants";
 import { UserAvatar } from "@/components/user-avatar";
+import { ProfilePopover } from "@/components/profile/profile-popover";
 import { MessageComposer } from "@/components/chat/message-composer";
 import { messageTime, dayLabel } from "@/lib/time";
 import { flagFor } from "@/lib/countries";
@@ -205,6 +206,7 @@ export function ChatPanel({
                   message={m}
                   grouped={!!grouped}
                   own={m.user_id === currentUserId}
+                  currentUserId={currentUserId}
                   onDelete={() => handleDelete(m.id)}
                 />
               </div>
@@ -240,11 +242,13 @@ function MessageItem({
   message,
   grouped,
   own,
+  currentUserId,
   onDelete,
 }: {
   message: Message;
   grouped: boolean;
   own: boolean;
+  currentUserId: string;
   onDelete: () => void;
 }) {
   const author = message.author;
@@ -256,12 +260,22 @@ function MessageItem({
       className={cn("group flex gap-3 rounded-lg px-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.02]", grouped ? "mt-0.5 py-0.5" : "mt-3 py-1")}
     >
       <div className="w-9 shrink-0">
-        {!grouped && <UserAvatar name={author?.name} avatarUrl={author?.avatar_url} seed={message.user_id} />}
+        {!grouped && (
+          <ProfilePopover userId={message.user_id} currentUserId={currentUserId}>
+            <button className="rounded-full outline-none ring-primary/40 transition hover:opacity-80 focus-visible:ring-2">
+              <UserAvatar name={author?.name} avatarUrl={author?.avatar_url} seed={message.user_id} />
+            </button>
+          </ProfilePopover>
+        )}
       </div>
       <div className="min-w-0 flex-1">
         {!grouped && (
           <div className="flex items-baseline gap-2">
-            <span className="text-sm font-semibold">{author?.name || "Ukjent"}</span>
+            <ProfilePopover userId={message.user_id} currentUserId={currentUserId}>
+              <button className="text-sm font-semibold outline-none hover:underline focus-visible:underline">
+                {author?.name || "Ukjent"}
+              </button>
+            </ProfilePopover>
             {author?.home_country && (
               <span className="text-xs" title={author.home_country}>
                 {flagFor(author.home_country)}

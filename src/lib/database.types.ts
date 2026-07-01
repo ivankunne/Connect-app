@@ -72,9 +72,28 @@ export interface Database {
         Relationships: Rel;
       };
       memberships: {
-        Row: { id: string; user_id: string; community_id: string } & Timestamped;
-        Insert: { id?: string; user_id: string; community_id: string };
-        Update: { community_id?: string; user_id?: string };
+        Row: { id: string; user_id: string; community_id: string; source: "auto" | "manual" } & Timestamped;
+        Insert: { id?: string; user_id: string; community_id: string; source?: "auto" | "manual" };
+        Update: { community_id?: string; user_id?: string; source?: "auto" | "manual" };
+        Relationships: Rel;
+      };
+      direct_messages: {
+        Row: {
+          id: string;
+          sender_id: string;
+          recipient_id: string;
+          content: string;
+          read_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          sender_id: string;
+          recipient_id: string;
+          content: string;
+          read_at?: string | null;
+        };
+        Update: { read_at?: string | null };
         Relationships: Rel;
       };
       messages: {
@@ -159,7 +178,12 @@ export interface Database {
         Relationships: Rel;
       };
     };
-    Functions: Record<string, never>;
+    Functions: {
+      get_dm_threads: {
+        Args: Record<string, never>;
+        Returns: { partner_id: string; last_content: string; last_at: string; unread: number }[];
+      };
+    };
     Enums: {
       community_type: CommunityType;
       message_category: MessageCategory;

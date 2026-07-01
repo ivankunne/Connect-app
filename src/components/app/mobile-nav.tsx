@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Home, LayoutGrid, Search, User as UserIcon, X } from "lucide-react";
+import { Home, LayoutGrid, MessageCircle, Search, User as UserIcon, X } from "lucide-react";
 import type { CommunityWithCount, Profile } from "@/lib/types";
 import { SidebarNav } from "@/components/app/sidebar-nav";
 import { UserMenu } from "@/components/app/user-menu";
@@ -60,6 +60,13 @@ export function MobileNav({
         <Link href="/app/feed" className={tab("", pathname === "/app/feed")}>
           <Home className="size-5" />
           Feed
+        </Link>
+        <Link
+          href="/app/messages"
+          className={tab("", pathname.startsWith("/app/messages") || pathname.startsWith("/app/dm"))}
+        >
+          <MessageCircle className="size-5" />
+          Meldinger
         </Link>
         <Link href="/app/search" className={tab("", pathname === "/app/search")}>
           <Search className="size-5" />

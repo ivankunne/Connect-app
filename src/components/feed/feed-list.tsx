@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import type { Author, PostWithMeta, Community } from "@/lib/types";
 import { UserAvatar } from "@/components/user-avatar";
+import { ProfilePopover } from "@/components/profile/profile-popover";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -107,6 +108,7 @@ export function FeedList({
                   post={p}
                   showCommunity={scope === "all"}
                   own={p.user_id === currentUserId}
+                  currentUserId={currentUserId}
                   onDelete={() => handleDelete(p.id)}
                 />
               ))}
@@ -171,11 +173,13 @@ function PostCard({
   post,
   showCommunity,
   own,
+  currentUserId,
   onDelete,
 }: {
   post: PostWithMeta;
   showCommunity: boolean;
   own: boolean;
+  currentUserId: string;
   onDelete: () => void;
 }) {
   return (
@@ -187,10 +191,18 @@ function PostCard({
       className="group rounded-2xl border border-border bg-card p-4 shadow-sm"
     >
       <div className="flex items-center gap-2.5">
-        <UserAvatar name={post.author?.name} avatarUrl={post.author?.avatar_url} seed={post.user_id} className="size-9" />
+        <ProfilePopover userId={post.user_id} currentUserId={currentUserId}>
+          <button className="rounded-full outline-none transition hover:opacity-80">
+            <UserAvatar name={post.author?.name} avatarUrl={post.author?.avatar_url} seed={post.user_id} className="size-9" />
+          </button>
+        </ProfilePopover>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <span className="text-sm font-semibold">{post.author?.name || "Ukjent"}</span>
+            <ProfilePopover userId={post.user_id} currentUserId={currentUserId}>
+              <button className="text-sm font-semibold outline-none hover:underline">
+                {post.author?.name || "Ukjent"}
+              </button>
+            </ProfilePopover>
             {post.author?.home_country && <span className="text-xs">{flagFor(post.author.home_country)}</span>}
           </div>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

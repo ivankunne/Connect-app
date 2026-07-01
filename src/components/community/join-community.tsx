@@ -23,7 +23,10 @@ export function JoinCommunity({ community }: { community: CommunityWithCount }) 
     if (!user) return;
     const { error } = await supabase
       .from("memberships")
-      .upsert({ community_id: community.id, user_id: user.id }, { onConflict: "user_id,community_id" });
+      .upsert(
+        { community_id: community.id, user_id: user.id, source: "manual" },
+        { onConflict: "user_id,community_id" },
+      );
     if (error) {
       toast.error("Kunne ikke bli med", { description: error.message });
       setJoining(false);
