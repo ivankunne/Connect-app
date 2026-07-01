@@ -82,7 +82,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       className="w-full max-w-sm"
     >
       <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight">
+        <h1 className="font-display text-3xl font-semibold tracking-[-0.01em]">
           {mode === "signup" ? "Bli med i HomeLink" : "Velkommen tilbake"}
         </h1>
         <p className="mt-1.5 text-sm text-muted-foreground">

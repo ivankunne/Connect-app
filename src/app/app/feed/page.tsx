@@ -29,7 +29,7 @@ export default async function FeedPage() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <header className="shrink-0 border-b border-border bg-card/80 px-4 py-3.5 backdrop-blur sm:px-6">
-        <h1 className="text-base font-semibold tracking-tight">Feed</h1>
+        <h1 className="font-display text-lg font-semibold tracking-[-0.01em]">Feed</h1>
         <p className="text-xs text-muted-foreground">
           Det siste fra alle fellesskapene dine
         </p>

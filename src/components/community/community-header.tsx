@@ -42,7 +42,7 @@ export function CommunityHeader({
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="truncate text-base font-semibold tracking-tight">{community.name}</h1>
+            <h1 className="truncate font-display text-lg font-semibold tracking-[-0.01em]">{community.name}</h1>
             <Badge variant="muted" className="hidden sm:inline-flex">
               {TYPE_BADGE[community.type]}
             </Badge>

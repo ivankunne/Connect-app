@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Fraunces } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
@@ -9,6 +9,15 @@ const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
+});
+
+// Editorial display serif — gives the brand a human, magazine-like voice
+// instead of the default all-sans "template" look.
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  display: "swap",
+  axes: ["opsz", "SOFT"],
 });
 
 const siteUrl = getSiteUrl();
@@ -34,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nb-NO" suppressHydrationWarning className={`${inter.variable} h-full`}>
+    <html lang="nb-NO" suppressHydrationWarning className={`${inter.variable} ${fraunces.variable} h-full`}>
       <body className="min-h-full flex flex-col antialiased">
         <ThemeProvider>
           {children}

@@ -20,7 +20,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
         </Link>
 
         <div className="relative max-w-md">
-          <p className="text-2xl font-semibold leading-snug">
+          <p className="font-display text-[1.7rem] font-medium leading-snug tracking-[-0.01em]">
             «Jeg flyttet til Bergen uten å kjenne en sjel. Nå har jeg middag med tre andre
             spanjoler hver torsdag.»
           </p>
