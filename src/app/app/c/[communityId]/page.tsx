@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getCurrentUser, getMyCommunities } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
@@ -31,48 +32,55 @@ export default async function CommunityPage({
 
   const supabase = await createClient();
 
-  const { data: community } = await supabase
-    .from("communities_with_counts")
-    .select("*")
-    .eq("id", communityId)
-    .maybeSingle();
+  // Fetch ONLY the active view's data, and run everything the page needs in a
+  // SINGLE parallel batch instead of a sequential chain (one network round-trip
+  // instead of ~5 — critical when Vercel and Supabase are in different regions).
+  const viewDataQuery =
+    view === "chat"
+      ? supabase
+          .from("messages")
+          .select(`*, ${AUTHOR}`)
+          .eq("community_id", communityId)
+          .eq("category", channel)
+          .order("created_at", { ascending: false })
+          .limit(MESSAGE_PAGE_SIZE)
+      : view === "events"
+        ? supabase
+            .from("events")
+            .select(`*, ${AUTHOR}, attendees:event_attendees(user_id)`)
+            .eq("community_id", communityId)
+            .order("datetime", { ascending: true })
+        : supabase
+            .from("posts")
+            .select(`*, ${AUTHOR}`)
+            .eq("community_id", communityId)
+            .order("created_at", { ascending: false })
+            .limit(30);
 
+  const [communityRes, membershipRes, myCommunities, viewRes] = await Promise.all([
+    supabase.from("communities_with_counts").select("*").eq("id", communityId).maybeSingle(),
+    supabase
+      .from("memberships")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("community_id", communityId)
+      .maybeSingle(),
+    getMyCommunities(),
+    viewDataQuery,
+  ]);
+
+  const community = communityRes.data;
   if (!community) notFound();
+  if (!membershipRes.data) return <JoinCommunity community={community} />;
 
-  const { data: membership } = await supabase
-    .from("memberships")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("community_id", communityId)
-    .maybeSingle();
-
-  if (!membership) {
-    return <JoinCommunity community={community} />;
-  }
-
-  const myCommunities = await getMyCommunities();
-
-  // Fetch ONLY the data the active view needs (spec §9 performance rule).
   let initialMessages: Message[] = [];
   let events: EventWithMeta[] = [];
   let posts: PostWithMeta[] = [];
 
   if (view === "chat") {
-    const { data } = await supabase
-      .from("messages")
-      .select(`*, ${AUTHOR}`)
-      .eq("community_id", communityId)
-      .eq("category", channel)
-      .order("created_at", { ascending: false })
-      .limit(MESSAGE_PAGE_SIZE);
-    initialMessages = ((data ?? []) as unknown as Message[]).reverse();
+    initialMessages = ((viewRes.data ?? []) as unknown as Message[]).reverse();
   } else if (view === "events") {
-    const { data } = await supabase
-      .from("events")
-      .select(`*, ${AUTHOR}, attendees:event_attendees(user_id)`)
-      .eq("community_id", communityId)
-      .order("datetime", { ascending: true });
-    events = (data ?? []).map((e: Record<string, unknown>) => {
+    events = ((viewRes.data ?? []) as Record<string, unknown>[]).map((e) => {
       const attendees = (e.attendees as { user_id: string }[]) ?? [];
       return {
         ...(e as unknown as EventWithMeta),
@@ -81,13 +89,7 @@ export default async function CommunityPage({
       };
     });
   } else {
-    const { data } = await supabase
-      .from("posts")
-      .select(`*, ${AUTHOR}`)
-      .eq("community_id", communityId)
-      .order("created_at", { ascending: false })
-      .limit(30);
-    posts = (data ?? []) as unknown as PostWithMeta[];
+    posts = (viewRes.data ?? []) as unknown as PostWithMeta[];
   }
 
   return (
@@ -122,7 +124,21 @@ export default async function CommunityPage({
           )}
         </div>
       </div>
-      <ContextPanel community={community} myCommunities={myCommunities} currentUserId={user.id} />
+      <Suspense fallback={<ContextPanelSkeleton />}>
+        <ContextPanel community={community} myCommunities={myCommunities} currentUserId={user.id} />
+      </Suspense>
     </div>
+  );
+}
+
+function ContextPanelSkeleton() {
+  return (
+    <aside className="hidden w-[336px] shrink-0 border-l border-border bg-background xl:block">
+      <div className="space-y-4 p-5">
+        <div className="h-24 animate-pulse rounded-2xl bg-muted" />
+        <div className="h-14 animate-pulse rounded-xl bg-muted" />
+        <div className="h-14 animate-pulse rounded-xl bg-muted" />
+      </div>
+    </aside>
   );
 }
