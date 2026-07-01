@@ -3,8 +3,9 @@ import { CalendarDays, Globe2, MessagesSquare, Sparkles, Users } from "lucide-re
 import { HomeLinkMark } from "@/components/brand";
 import { HeroVisual } from "@/components/landing/hero-visual";
 import { Button } from "@/components/ui/button";
+import { getSiteUrl } from "@/lib/site";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const siteUrl = getSiteUrl();
 
 const jsonLd = {
   "@context": "https://schema.org",
