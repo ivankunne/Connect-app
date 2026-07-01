@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, MapPin, MessageCircle, UserRound } from "lucide-react";
+import { Ban, Flag, Loader2, MapPin, MessageCircle, UserRound } from "lucide-react";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -45,6 +46,23 @@ export function ProfilePopover({
       .maybeSingle();
     setProfile(data as MiniProfile);
     setLoading(false);
+  }
+
+  async function block() {
+    const supabase = createClient();
+    const { error } = await supabase.from("blocks").insert({ blocker_id: currentUserId, blocked_id: userId });
+    if (error) return toast.error("Kunne ikke blokkere");
+    toast.success("Bruker blokkert", { description: "Du ser ikke lenger meldingene deres." });
+    router.refresh();
+  }
+
+  async function report() {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("reports")
+      .insert({ reporter_id: currentUserId, target_type: "user", target_id: userId });
+    if (error) return toast.error("Kunne ikke sende rapport");
+    toast.success("Takk for rapporten", { description: "Vi ser på den så snart vi kan." });
   }
 
   return (
@@ -112,6 +130,17 @@ export function ProfilePopover({
                   </>
                 )}
               </div>
+
+              {!isSelf && (
+                <div className="mt-2 flex items-center gap-3 border-t border-border pt-2 text-xs text-muted-foreground">
+                  <button onClick={block} className="inline-flex items-center gap-1 hover:text-destructive">
+                    <Ban className="size-3.5" /> Blokker
+                  </button>
+                  <button onClick={report} className="inline-flex items-center gap-1 hover:text-foreground">
+                    <Flag className="size-3.5" /> Rapporter
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

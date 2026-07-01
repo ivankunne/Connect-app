@@ -67,17 +67,29 @@ export function DmThread({
   }, [supabase, currentUserId, partner.id]);
 
   async function handleSend(content: string) {
+    const tempId = `temp-${crypto.randomUUID()}`;
+    const optimistic: DM = {
+      id: tempId,
+      sender_id: currentUserId,
+      recipient_id: partner.id,
+      content,
+      read_at: null,
+      created_at: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, optimistic]);
+    requestAnimationFrame(() => scrollToBottom("smooth"));
+
     const { data, error } = await supabase
       .from("direct_messages")
       .insert({ sender_id: currentUserId, recipient_id: partner.id, content })
       .select("*")
       .single();
     if (error) {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
       toast.error("Kunne ikke sende melding", { description: error.message });
       return;
     }
-    setMessages((prev) => [...prev, data as DM]);
-    requestAnimationFrame(() => scrollToBottom("smooth"));
+    setMessages((prev) => prev.map((m) => (m.id === tempId ? (data as DM) : m)));
   }
 
   return (

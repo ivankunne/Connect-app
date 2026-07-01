@@ -10,10 +10,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 export function AppShell({
   profile,
   communities,
+  unreadCounts,
+  dmUnread,
   children,
 }: {
   profile: Profile;
   communities: CommunityWithCount[];
+  unreadCounts: Record<string, number>;
+  dmUnread: number;
   children: React.ReactNode;
 }) {
   const params = useParams();
@@ -25,7 +29,12 @@ export function AppShell({
         {/* Desktop sidebar */}
         <aside className="hidden w-[272px] shrink-0 flex-col bg-sidebar text-sidebar-foreground lg:flex">
           <div className="flex min-h-0 flex-1 flex-col">
-            <SidebarNav communities={communities} activeCommunityId={activeCommunityId} />
+            <SidebarNav
+              communities={communities}
+              activeCommunityId={activeCommunityId}
+              unreadCounts={unreadCounts}
+              dmUnread={dmUnread}
+            />
           </div>
           <UserMenu profile={profile} />
         </aside>
@@ -36,7 +45,13 @@ export function AppShell({
         </main>
 
         {/* Mobile bottom nav + drawer */}
-        <MobileNav profile={profile} communities={communities} activeCommunityId={activeCommunityId} />
+        <MobileNav
+          profile={profile}
+          communities={communities}
+          activeCommunityId={activeCommunityId}
+          unreadCounts={unreadCounts}
+          dmUnread={dmUnread}
+        />
       </div>
     </TooltipProvider>
   );

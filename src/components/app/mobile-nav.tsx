@@ -14,10 +14,14 @@ export function MobileNav({
   profile,
   communities,
   activeCommunityId,
+  unreadCounts,
+  dmUnread,
 }: {
   profile: Profile;
   communities: CommunityWithCount[];
   activeCommunityId?: string;
+  unreadCounts: Record<string, number>;
+  dmUnread: number;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -45,6 +49,8 @@ export function MobileNav({
                   <SidebarNav
                     communities={communities}
                     activeCommunityId={activeCommunityId}
+                    unreadCounts={unreadCounts}
+                    dmUnread={dmUnread}
                     onNavigate={() => setOpen(false)}
                   />
                 </div>
@@ -63,10 +69,15 @@ export function MobileNav({
         </Link>
         <Link
           href="/app/messages"
-          className={tab("", pathname.startsWith("/app/messages") || pathname.startsWith("/app/dm"))}
+          className={cn("relative", tab("", pathname.startsWith("/app/messages") || pathname.startsWith("/app/dm")))}
         >
           <MessageCircle className="size-5" />
           Meldinger
+          {dmUnread > 0 && (
+            <span className="absolute right-[22%] top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.55rem] font-semibold text-primary-foreground">
+              {dmUnread > 9 ? "9+" : dmUnread}
+            </span>
+          )}
         </Link>
         <Link href="/app/search" className={tab("", pathname === "/app/search")}>
           <Search className="size-5" />

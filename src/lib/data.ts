@@ -42,3 +42,32 @@ export const getMyCommunities = cache(async (): Promise<CommunityWithCount[]> =>
 
   return communities ?? [];
 });
+
+/** Map of community_id → unread message count for the current user. */
+export const getUnreadCounts = cache(async (): Promise<Record<string, number>> => {
+  const user = await getCurrentUser();
+  if (!user) return {};
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("get_unread_counts");
+  const map: Record<string, number> = {};
+  for (const row of data ?? []) map[row.community_id] = row.unread;
+  return map;
+});
+
+/** Total unread direct messages across all conversations. */
+export const getDmUnreadTotal = cache(async (): Promise<number> => {
+  const user = await getCurrentUser();
+  if (!user) return 0;
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("get_dm_threads");
+  return (data ?? []).reduce((sum, t) => sum + (t.unread ?? 0), 0);
+});
+
+/** IDs of users the current user has blocked (their content is hidden). */
+export const getBlockedIds = cache(async (): Promise<string[]> => {
+  const user = await getCurrentUser();
+  if (!user) return [];
+  const supabase = await createClient();
+  const { data } = await supabase.from("blocks").select("blocked_id").eq("blocker_id", user.id);
+  return (data ?? []).map((b) => b.blocked_id);
+});

@@ -16,8 +16,14 @@ export interface Author {
   home_country?: string | null;
 }
 
+export interface Reaction {
+  emoji: string;
+  user_id: string;
+}
+
 export type Message = Database["public"]["Tables"]["messages"]["Row"] & {
   author?: Author | null;
+  reactions?: Reaction[];
 };
 
 export type PostWithMeta = Post & {

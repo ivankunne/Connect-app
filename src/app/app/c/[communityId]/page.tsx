@@ -1,9 +1,9 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
-import { getCurrentUser, getMyCommunities } from "@/lib/data";
+import { notFound, redirect } from "next/navigation";
+import { getBlockedIds, getCurrentUser, getMyCommunities, getMyProfile } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import { isMessageCategory, MESSAGE_PAGE_SIZE, type AppView } from "@/lib/constants";
-import type { Message, EventWithMeta, PostWithMeta } from "@/lib/types";
+import type { Author, Message, EventWithMeta, PostWithMeta } from "@/lib/types";
 import { CommunityHeader } from "@/components/community/community-header";
 import { ChatPanel } from "@/components/chat/chat-panel";
 import { EventsPanel } from "@/components/events/events-panel";
@@ -12,6 +12,7 @@ import { ContextPanel } from "@/components/community/context-panel";
 import { JoinCommunity } from "@/components/community/join-community";
 
 const AUTHOR = "author:profiles(id,name,avatar_url,current_country,home_country)";
+const REACTIONS = "reactions:message_reactions(emoji,user_id)";
 
 type SP = Promise<{ view?: string; channel?: string }>;
 
@@ -39,7 +40,7 @@ export default async function CommunityPage({
     view === "chat"
       ? supabase
           .from("messages")
-          .select(`*, ${AUTHOR}`)
+          .select(`*, ${AUTHOR}, ${REACTIONS}`)
           .eq("community_id", communityId)
           .eq("category", channel)
           .order("created_at", { ascending: false })
@@ -57,7 +58,7 @@ export default async function CommunityPage({
             .order("created_at", { ascending: false })
             .limit(30);
 
-  const [communityRes, membershipRes, myCommunities, viewRes] = await Promise.all([
+  const [communityRes, membershipRes, myCommunities, viewRes, blockedIds, profile] = await Promise.all([
     supabase.from("communities_with_counts").select("*").eq("id", communityId).maybeSingle(),
     supabase
       .from("memberships")
@@ -67,18 +68,25 @@ export default async function CommunityPage({
       .maybeSingle(),
     getMyCommunities(),
     viewDataQuery,
+    getBlockedIds(),
+    getMyProfile(),
   ]);
 
   const community = communityRes.data;
   if (!community) notFound();
   if (!membershipRes.data) return <JoinCommunity community={community} />;
+  if (!profile) redirect("/login");
+
+  const blocked = new Set(blockedIds);
 
   let initialMessages: Message[] = [];
   let events: EventWithMeta[] = [];
   let posts: PostWithMeta[] = [];
 
   if (view === "chat") {
-    initialMessages = ((viewRes.data ?? []) as unknown as Message[]).reverse();
+    initialMessages = ((viewRes.data ?? []) as unknown as Message[])
+      .filter((m) => !blocked.has(m.user_id))
+      .reverse();
   } else if (view === "events") {
     events = ((viewRes.data ?? []) as Record<string, unknown>[]).map((e) => {
       const attendees = (e.attendees as { user_id: string }[]) ?? [];
@@ -89,7 +97,7 @@ export default async function CommunityPage({
       };
     });
   } else {
-    posts = (viewRes.data ?? []) as unknown as PostWithMeta[];
+    posts = ((viewRes.data ?? []) as unknown as PostWithMeta[]).filter((p) => !blocked.has(p.user_id));
   }
 
   return (
@@ -102,8 +110,9 @@ export default async function CommunityPage({
               key={`${communityId}:${channel}`}
               communityId={communityId}
               channel={channel}
-              currentUserId={user.id}
+              currentUser={profile as Author}
               initialMessages={initialMessages}
+              blockedIds={blockedIds}
             />
           )}
           {view === "events" && (

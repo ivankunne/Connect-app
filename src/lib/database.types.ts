@@ -72,9 +72,46 @@ export interface Database {
         Relationships: Rel;
       };
       memberships: {
-        Row: { id: string; user_id: string; community_id: string; source: "auto" | "manual" } & Timestamped;
-        Insert: { id?: string; user_id: string; community_id: string; source?: "auto" | "manual" };
-        Update: { community_id?: string; user_id?: string; source?: "auto" | "manual" };
+        Row: {
+          id: string;
+          user_id: string;
+          community_id: string;
+          source: "auto" | "manual";
+          last_read_at: string;
+        } & Timestamped;
+        Insert: { id?: string; user_id: string; community_id: string; source?: "auto" | "manual"; last_read_at?: string };
+        Update: { community_id?: string; user_id?: string; source?: "auto" | "manual"; last_read_at?: string };
+        Relationships: Rel;
+      };
+      message_reactions: {
+        Row: { id: string; message_id: string; user_id: string; emoji: string } & Timestamped;
+        Insert: { id?: string; message_id: string; user_id: string; emoji: string };
+        Update: { emoji?: string };
+        Relationships: Rel;
+      };
+      blocks: {
+        Row: { blocker_id: string; blocked_id: string } & Timestamped;
+        Insert: { blocker_id: string; blocked_id: string };
+        Update: Record<string, never>;
+        Relationships: Rel;
+      };
+      reports: {
+        Row: {
+          id: string;
+          reporter_id: string;
+          target_type: "message" | "user" | "post" | "dm";
+          target_id: string;
+          reason: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          reporter_id: string;
+          target_type: "message" | "user" | "post" | "dm";
+          target_id: string;
+          reason?: string | null;
+        };
+        Update: Record<string, never>;
         Relationships: Rel;
       };
       direct_messages: {
@@ -103,6 +140,7 @@ export interface Database {
           user_id: string;
           category: MessageCategory;
           content: string;
+          image_url: string | null;
           created_at: string;
         };
         Insert: {
@@ -111,6 +149,7 @@ export interface Database {
           user_id: string;
           category?: MessageCategory;
           content: string;
+          image_url?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["messages"]["Insert"]>;
         Relationships: Rel;
@@ -182,6 +221,14 @@ export interface Database {
       get_dm_threads: {
         Args: Record<string, never>;
         Returns: { partner_id: string; last_content: string; last_at: string; unread: number }[];
+      };
+      get_unread_counts: {
+        Args: Record<string, never>;
+        Returns: { community_id: string; unread: number }[];
+      };
+      mark_community_read: {
+        Args: { target_community: string };
+        Returns: undefined;
       };
     };
     Enums: {
