@@ -23,7 +23,7 @@ export function AppShell({
     <TooltipProvider delayDuration={300}>
       <div className="flex h-svh overflow-hidden">
         {/* Desktop sidebar */}
-        <aside className="hidden w-[272px] shrink-0 flex-col lg:flex">
+        <aside className="hidden w-[272px] shrink-0 flex-col bg-sidebar text-sidebar-foreground lg:flex">
           <div className="flex min-h-0 flex-1 flex-col">
             <SidebarNav communities={communities} activeCommunityId={activeCommunityId} />
           </div>

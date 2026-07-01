@@ -40,7 +40,7 @@
   --ring: oklch(0.66 0.17 34);
 
   /* Chat / community surface, slightly warmer than the canvas */
-  --surface: oklch(0.982 0.013 74);
+  --surface: oklch(0.985 0.011 88);
   /* Warm espresso sidebar — inviting, on-brand with the coral, not cold charcoal */
   --sidebar: oklch(0.28 0.035 48);
   --sidebar-foreground: oklch(0.96 0.013 78);

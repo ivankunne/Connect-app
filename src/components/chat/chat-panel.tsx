@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowDown, Loader2, Trash2 } from "lucide-react";
+import { ArrowDown, Loader2, MessagesSquare, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import type { Message, Author } from "@/lib/types";
 import type { MessageCategory } from "@/lib/database.types";
-import { MESSAGE_PAGE_SIZE, channelLabel } from "@/lib/constants";
+import { CHANNELS, MESSAGE_PAGE_SIZE, channelLabel } from "@/lib/constants";
 import { UserAvatar } from "@/components/user-avatar";
 import { MessageComposer } from "@/components/chat/message-composer";
 import { messageTime, dayLabel } from "@/lib/time";
@@ -173,6 +173,9 @@ export function ChatPanel({
         onScroll={onScroll}
         className="min-h-0 flex-1 overflow-y-auto scrollbar-thin"
       >
+        {messages.length === 0 && !hasMore ? (
+          <EmptyChat channel={channel} />
+        ) : (
         <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-end px-4 py-4 sm:px-6">
           {hasMore ? (
             <button
@@ -184,7 +187,7 @@ export function ChatPanel({
               Last inn eldre meldinger
             </button>
           ) : (
-            <ChannelIntro channel={channel} empty={messages.length === 0} />
+            <ChannelIntro channel={channel} />
           )}
 
           {messages.map((m, i) => {
@@ -208,6 +211,7 @@ export function ChatPanel({
             );
           })}
         </div>
+        )}
       </div>
 
       <AnimatePresence>
@@ -297,14 +301,32 @@ function DayDivider({ label }: { label: string }) {
   );
 }
 
-function ChannelIntro({ channel, empty }: { channel: MessageCategory; empty: boolean }) {
+function ChannelIntro({ channel }: { channel: MessageCategory }) {
   return (
     <div className="mb-4">
-      <h2 className="text-lg font-semibold">Velkommen til #{channelLabel(channel).toLowerCase()}</h2>
+      <h2 className="font-display text-xl font-semibold tracking-[-0.01em]">
+        Velkommen til #{channelLabel(channel).toLowerCase()}
+      </h2>
       <p className="text-sm text-muted-foreground">
-        {empty
-          ? "Vær den første som sier hei 👋 Meldingene her er starten på noe."
-          : "Dette er starten på samtalen i denne kanalen."}
+        Dette er starten på samtalen i denne kanalen.
+      </p>
+    </div>
+  );
+}
+
+function EmptyChat({ channel }: { channel: MessageCategory }) {
+  const Icon = CHANNELS.find((c) => c.key === channel)?.icon ?? MessagesSquare;
+  return (
+    <div className="mx-auto flex min-h-full max-w-md flex-col items-center justify-center bg-dots px-6 py-16 text-center">
+      <div className="mb-5 flex size-16 items-center justify-center rounded-2xl bg-primary/12 text-primary shadow-sm">
+        <Icon className="size-7" />
+      </div>
+      <h2 className="font-display text-2xl font-semibold tracking-[-0.01em]">
+        Velkommen til #{channelLabel(channel).toLowerCase()}
+      </h2>
+      <p className="mt-2 text-[0.95rem] leading-relaxed text-muted-foreground">
+        Vær den første som sier hei. Meldingene her er starten på noe — et spørsmål,
+        et tips, eller bare et vennlig hallo. 👋
       </p>
     </div>
   );
