@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -22,6 +23,7 @@ export function DmThread({
   partner: Author;
   initialMessages: DM[];
 }) {
+  const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [messages, setMessages] = useState<DM[]>(initialMessages);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -36,13 +38,16 @@ export function DmThread({
   }, []);
 
   useEffect(() => {
+    // Mark the partner's messages read, then refresh server data so the
+    // sidebar/nav unread badge (fetched in the layout) recomputes.
     const markRead = async () => {
-      await supabase
+      const { error } = await supabase
         .from("direct_messages")
         .update({ read_at: new Date().toISOString() })
         .eq("recipient_id", currentUserId)
         .eq("sender_id", partner.id)
         .is("read_at", null);
+      if (!error) router.refresh();
     };
     markRead();
 
@@ -64,7 +69,7 @@ export function DmThread({
     return () => {
       supabase.removeChannel(sub);
     };
-  }, [supabase, currentUserId, partner.id]);
+  }, [supabase, currentUserId, partner.id, router]);
 
   async function handleSend(content: string) {
     const tempId = `temp-${crypto.randomUUID()}`;
